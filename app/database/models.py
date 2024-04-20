@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, String, ForeignKey
+from sqlalchemy import BigInteger, String, ForeignKey, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 
@@ -24,8 +24,7 @@ class Reminder(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     text: Mapped[str] = mapped_column(String(100))
-    date: Mapped[str] = mapped_column(String(25))
-    time: Mapped[str] = mapped_column(String(25))
+    date_time: Mapped[str] = mapped_column(DateTime)
     user: Mapped[int] = mapped_column(ForeignKey('users.id'))
 
 
