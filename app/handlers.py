@@ -37,7 +37,7 @@ async def set_reminder(message: Message, state: FSMContext):
 async def reminder_text(message: Message, state: FSMContext):
     await state.update_data(text=message.text)
     await state.set_state(Reminder.date_time)
-    await message.answer('Введите дату и время напоминания в формате "ГГГ-ММ-ДД ЧЧ:ММ" (например, 2023-12-31 23:59):')
+    await message.answer('Введите дату и время напоминания в формате "ГГГГ-ММ-ДД ЧЧ:ММ" (например, 2023-12-31 23:59):')
 
 
 @router.message(Reminder.date_time)
@@ -65,40 +65,12 @@ async def set_reminder(message: Message):
         await message.answer(f"{value}")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-# @router.message(Reminder.time)
-# async def reminder_time(message: Message, state: FSMContext, apscheduler: AsyncIOScheduler):
-#     await state.update_data(time=message.text)
-#     data = await state.get_data()
-#     await rq.set_reminder(text=data['text'], date=data['date'], time=data['time'], tg_id=message.from_user.id)
-#     await message.answer(
-#         f"Текст напоминания: {data['text']}\n"
-#         f"Дата напоминания: {data['date']}\n"
-#         f"Время напоминания: {data['time']}"
-#     )
-#     date_value = data['date'].split('.')
-#     apscheduler.add_job(data['text'], trigger='date', run_date=datetime(date_value[1],date_value[2], date_value[0], data['time']))
-#     await state.clear()
-
-
-
-# @router.message()
-# async def any_message(message: Message):
-#     text = message.text
-#     if text in ['Привет', 'привет', 'hi', 'hello']:
-#         await message.answer(f"И тебе привет {message.from_user.first_name}")
-#     else:
-#         await message.reply(
-#             f"{hide_link('https://telegra.ph/file/562a512448876923e28c3.png')}"
-#             f"Ничего не понятно, но очень интересно!", parse_mode='HTML')
+@router.message()
+async def any_message(message: Message):
+    text = message.text
+    if text in ['Привет', 'привет', 'hi', 'hello']:
+        await message.answer(f"И тебе привет {message.from_user.first_name}")
+    else:
+        await message.reply(
+            f"{hide_link('https://telegra.ph/file/562a512448876923e28c3.png')}"
+            f"Ничего не понятно, но очень интересно!", parse_mode='HTML')

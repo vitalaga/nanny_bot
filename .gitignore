@@ -3,6 +3,7 @@
 /__pycache__
 app/__pycache__
 app/database/__pycache__
+middlewares/__pycache__/
 db.sqlite3
 .env
 test.py

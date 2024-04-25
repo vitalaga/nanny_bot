@@ -1,5 +1,3 @@
-import asyncio
-
 from app.database.models import async_session
 from app.database.models import User, Reminder
 
@@ -43,10 +41,5 @@ async def check_notification(bot):
                 await session.delete(notification)
                 await session.commit()
 
-            # await asyncio.sleep(60)
-
-async def get_natif():
-    async with (async_session() as session):
-        return await session.execute(select(Reminder).where(Reminder.date_time <= datetime.now()))
 
 

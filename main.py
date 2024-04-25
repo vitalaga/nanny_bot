@@ -10,8 +10,6 @@ from app.handlers import router
 from app.database.models import async_main
 from app.database.requests import check_notification
 
-from middlewares.apschedulermiddleware import SchedulerMiddleware
-
 from dotenv import load_dotenv
 
 
@@ -26,7 +24,7 @@ async def main():
     dp.include_router(router)
 
     scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
-    scheduler.add_job(check_notification, trigger='interval', seconds=60, kwargs={'bot': bot})
+    scheduler.add_job(check_notification, trigger='interval', seconds=60, misfire_grace_time=3, kwargs={'bot': bot})
     scheduler.start()
 
     await dp.start_polling(bot)
@@ -34,8 +32,7 @@ async def main():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print('Exit')
+        print('Бот отключён.')
