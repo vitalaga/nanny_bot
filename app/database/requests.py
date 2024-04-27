@@ -25,6 +25,18 @@ async def set_reminder(tg_id, date_time, text):
             await session.commit()
 
 
+async def get_reminders(tg_id):
+    async with async_session() as session:
+        result = await session.execute(select(User).filter(User.tg_id == tg_id))
+        user = result.scalars().first()
+        return await session.scalars(select(Reminder).where(Reminder.user == user.id))
+
+
+async def get_reminder(reminder_id):
+    async with async_session() as session:
+        return await session.scalar(select(Reminder).where(Reminder.id == reminder_id))
+
+
 async def check_notification(bot):
     async with (async_session() as session):
         while True:
@@ -40,6 +52,9 @@ async def check_notification(bot):
 
                 await session.delete(notification)
                 await session.commit()
+
+
+
 
 
 

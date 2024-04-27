@@ -24,7 +24,10 @@ class Reminder(StatesGroup):
 @router.message(CommandStart())
 async def start(message: Message):
     await rq.set_user(message.from_user.id)
-    await message.answer(f"Привет, <b>{message.from_user.first_name}</b>", reply_markup=kb.main, parse_mode='HTML')
+    await message.answer(
+        f"Привет, <b>{message.from_user.first_name}</b>",
+        reply_markup=kb.main,
+        parse_mode='HTML')
 
 
 @router.message(Command('set_reminder'))
@@ -58,11 +61,23 @@ async def reminder_date(message: Message, state: FSMContext):
         await message.answer("Неверный формат даты и времени. Попробуйте снова.")
 
 
-@router.message(Command('get_reminder'))
-async def set_reminder(message: Message):
-    natif = await rq.get_natif()
-    for value in natif:
-        await message.answer(f"{value}")
+@router.callback_query(F.data == 'reminders')
+async def reminders(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.answer("Вот все ваши напоминания:",
+                                  reply_markup=await kb.reminders(callback.from_user.id)
+                                  )
+
+
+@router.callback_query(F.data.startswith('reminder_'))
+async def reminder(callback: CallbackQuery):
+    reminder_data = await rq.get_reminder(callback.data.split('_')[1])
+    print(reminder_data)
+    await callback.answer('Вы выбрали напоминание:')
+    await callback.message.answer(f"Текст: {reminder_data.text}\n"
+                                  f"Дата и время напоминания: {reminder_data.date_time}",
+                                  reply_markup=await kb.reminders(callback.from_user.id)
+                                  )
 
 
 @router.message()
