@@ -7,7 +7,7 @@ from aiogram import Bot, Dispatcher
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.handlers import router
-from app.database.models import async_main
+from app.database.engine import create_db
 from app.database.requests import check_notification
 
 from dotenv import load_dotenv
@@ -19,7 +19,7 @@ dp = Dispatcher()
 
 
 async def main():
-    await async_main()
+    await create_db()
 
     dp.include_router(router)
 

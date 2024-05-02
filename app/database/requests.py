@@ -1,4 +1,4 @@
-from app.database.models import async_session
+from app.database.engine import async_session
 from app.database.models import User, Reminder
 
 from sqlalchemy import select, update, delete

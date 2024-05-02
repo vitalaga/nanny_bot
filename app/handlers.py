@@ -30,10 +30,10 @@ async def start(message: Message):
         parse_mode='HTML')
 
 
-@router.message(Command('set_reminder'))
+@router.message(F.text == 'Создать напоминание')
 async def set_reminder(message: Message, state: FSMContext):
     await state.set_state(Reminder.text)
-    await message.answer("Введите текст напоминания")
+    await message.answer("Введите текст напоминания:")
 
 
 @router.message(Reminder.text)
@@ -61,12 +61,9 @@ async def reminder_date(message: Message, state: FSMContext):
         await message.answer("Неверный формат даты и времени. Попробуйте снова.")
 
 
-@router.callback_query(F.data == 'reminders')
-async def reminders(callback: CallbackQuery):
-    await callback.answer()
-    await callback.message.answer("Вот все ваши напоминания:",
-                                  reply_markup=await kb.reminders(callback.from_user.id)
-                                  )
+@router.message(F.text == 'Активные напоминания')
+async def reminders(message: Message):
+    await message.answer("Вот все ваши напоминания:", reply_markup=await kb.reminders(message.from_user.id))
 
 
 @router.callback_query(F.data.startswith('reminder_'))
