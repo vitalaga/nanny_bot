@@ -9,7 +9,8 @@ from datetime import datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-import app.keyboards as kb
+import keyboards.reply as kb_reply
+import keyboards.inline as kb_inline
 import app.database.requests as rq
 
 
@@ -26,7 +27,7 @@ async def start(message: Message):
     await rq.set_user(message.from_user.id)
     await message.answer(
         f"Привет, <b>{message.from_user.first_name}</b>",
-        reply_markup=kb.main,
+        reply_markup=kb_reply.main,
         parse_mode='HTML')
 
 
@@ -61,20 +62,42 @@ async def reminder_date(message: Message, state: FSMContext):
         await message.answer("Неверный формат даты и времени. Попробуйте снова.")
 
 
-@router.message(F.text == 'Активные напоминания')
-async def reminders(message: Message):
-    await message.answer("Вот все ваши напоминания:", reply_markup=await kb.reminders(message.from_user.id))
+# @router.message(F.text == 'Мои напоминания')
+# async def reminders(message: Message):
+#     await message.answer("Вот все ваши напоминания:", reply_markup=await kb_reply.reminders(message.from_user.id))
 
 
-@router.callback_query(F.data.startswith('reminder_'))
-async def reminder(callback: CallbackQuery):
-    reminder_data = await rq.get_reminder(callback.data.split('_')[1])
-    print(reminder_data)
-    await callback.answer('Вы выбрали напоминание:')
-    await callback.message.answer(f"Текст: {reminder_data.text}\n"
-                                  f"Дата и время напоминания: {reminder_data.date_time}",
-                                  reply_markup=await kb.reminders(callback.from_user.id)
-                                  )
+@router.message(F.text.lower() == 'Активные напоминания'.lower())
+async def all_reminders(message: Message):
+    reminders_user = rq.get_reminders(message.from_user.id)
+    print(reminders_user)
+    if reminders_user:
+        await message.answer("<strong>Вот все ваши напоминания:</strong>", parse_mode='HTML')
+        for rem in await reminders_user:
+            await message.answer(f"Текст: {rem.text}\nДата и время напоминания: {rem.date_time}",
+                                 reply_markup=await kb_inline.actions_reminders(rem.id)
+                                 )
+    else:
+        await message.answer("Активных напоминаний нет😢")
+
+
+@router.callback_query(F.data.startswith('delete_reminder_'))
+async def delete_reminder(callback: CallbackQuery):
+    print(callback.data.split('_')[2])
+    reminder_data = await rq.get_reminder(callback.data.split('_')[2])
+    await callback.answer(
+        f'Вы удалили напоминание {reminder_data.text}'
+        f'\n на {reminder_data.date_time}',
+        show_alert=True)
+    await rq.delete_reminder(callback.data.split('_')[2])
+
+
+@router.message(F.photo)
+async def download_photo(message: Message, bot: Bot):
+    await bot.download(
+        message.photo[-1],
+        destination=f"D:/{message.photo[-1].file_id}.jpg"
+    )
 
 
 @router.message()

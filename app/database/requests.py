@@ -37,6 +37,13 @@ async def get_reminder(reminder_id):
         return await session.scalar(select(Reminder).where(Reminder.id == reminder_id))
 
 
+async def delete_reminder(reminder_id):
+    async with async_session() as session:
+        query = delete(Reminder).where(Reminder.id == reminder_id)
+        await session.execute(query)
+        await session.commit()
+
+
 async def check_notification(bot):
     async with (async_session() as session):
         while True:
