@@ -84,12 +84,12 @@ async def all_reminders(message: Message):
 @router.callback_query(F.data.startswith('delete_reminder_'))
 async def delete_reminder(callback: CallbackQuery):
     print(callback.data.split('_')[2])
-    reminder_data = await rq.get_reminder(callback.data.split('_')[2])
+    reminder_data = await rq.get_reminder(callback.data.split('_')[-1])
     await callback.answer(
         f'Вы удалили напоминание {reminder_data.text}'
         f'\n на {reminder_data.date_time}',
         show_alert=True)
-    await rq.delete_reminder(callback.data.split('_')[2])
+    await rq.delete_reminder(callback.data.split('_')[-1])
 
 
 @router.message(F.photo)
