@@ -1,13 +1,12 @@
 from aiogram import F, Router, Bot
-from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, CallbackQuery, BufferedInputFile, FSInputFile, URLInputFile
+from aiogram.filters import CommandStart
+from aiogram.types import Message, CallbackQuery
 from aiogram.utils.markdown import hide_link
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
 from datetime import datetime
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 import keyboards.reply as kb_reply
 import keyboards.inline as kb_inline
@@ -62,19 +61,14 @@ async def reminder_date(message: Message, state: FSMContext):
         await message.answer("Неверный формат даты и времени. Попробуйте снова.")
 
 
-# @router.message(F.text == 'Мои напоминания')
-# async def reminders(message: Message):
-#     await message.answer("Вот все ваши напоминания:", reply_markup=await kb_reply.reminders(message.from_user.id))
-
-
 @router.message(F.text.lower() == 'Активные напоминания'.lower())
 async def all_reminders(message: Message):
     reminders_user = rq.get_reminders(message.from_user.id)
-    print(reminders_user)
     if reminders_user:
         await message.answer("<strong>Вот все ваши напоминания:</strong>", parse_mode='HTML')
         for rem in await reminders_user:
-            await message.answer(f"Текст: {rem.text}\nДата и время напоминания: {rem.date_time}",
+            await message.answer(f"<b>Текст:</b> {rem.text}\n<b>Дата и время напоминания:</b> {rem.date_time}",
+                                 parse_mode='HTML',
                                  reply_markup=await kb_inline.actions_reminders(rem.id)
                                  )
     else:
@@ -83,7 +77,6 @@ async def all_reminders(message: Message):
 
 @router.callback_query(F.data.startswith('delete_reminder_'))
 async def delete_reminder(callback: CallbackQuery):
-    print(callback.data.split('_')[2])
     reminder_data = await rq.get_reminder(callback.data.split('_')[-1])
     await callback.answer(
         f'Вы удалили напоминание {reminder_data.text}'
