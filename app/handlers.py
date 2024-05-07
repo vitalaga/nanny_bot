@@ -7,7 +7,6 @@ from aiogram.fsm.context import FSMContext
 
 from datetime import datetime
 
-
 import keyboards.reply as kb_reply
 import keyboards.inline as kb_inline
 import app.database.requests as rq
@@ -40,20 +39,22 @@ async def set_reminder(message: Message, state: FSMContext):
 async def reminder_text(message: Message, state: FSMContext):
     await state.update_data(text=message.text)
     await state.set_state(Reminder.date_time)
-    await message.answer('Введите дату и время напоминания в формате "ГГГГ-ММ-ДД ЧЧ:ММ" (например, 2023-12-31 23:59):')
+    await message.answer('Введите дату в формате ДД.ММ.ГГГГ и время в формате ЧЧ:ММ (например, 31.12.2023 23:59):')
 
 
 @router.message(Reminder.date_time)
 async def reminder_date(message: Message, state: FSMContext):
     try:
-        date_time = datetime.strptime(message.text, '%Y-%m-%d %H:%M')
+        date_time = datetime.strptime(message.text, '%d.%m.%Y %H:%M')
         await state.update_data(date_time=date_time)
         data = await state.get_data()
         await rq.set_reminder(message.from_user.id, data['date_time'], data['text'])
+
         await message.answer(
             f"Уведомление успешно добавлено\n"
-            f"Текст напоминания: {data['text']}\n"
-            f"Дата и время напоминания: {data['date_time']}\n"
+            f"<b>Текст напоминания:</b> {data['text']}\n"
+            f"<b>Дата и время напоминания:</b> {date_time.strftime('%d.%m.%Y в %H:%M')}\n",
+            parse_mode='HTML'
         )
         await state.clear()
 
