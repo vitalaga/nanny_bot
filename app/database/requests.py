@@ -1,7 +1,7 @@
 from app.database.engine import async_session
 from app.database.models import User, Reminder
 
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, delete
 
 from datetime import datetime
 
@@ -42,6 +42,19 @@ async def delete_reminder(reminder_id):
         query = delete(Reminder).where(Reminder.id == reminder_id)
         await session.execute(query)
         await session.commit()
+
+
+async def check_reminders_for_user(tg_id):
+    async with async_session() as session:
+
+        value = await session.execute(select(User).where(User.tg_id == tg_id))
+        user = value.scalars().first()
+        result = await session.execute(
+            select(Reminder).where(Reminder.user == user.id)
+        )
+
+        record = result.scalars().first()
+        return record
 
 
 async def check_notification(bot):

@@ -31,6 +31,7 @@ async def start(message: Message):
 
 @router.message(F.text == 'Создать напоминание')
 async def set_reminder(message: Message, state: FSMContext):
+    await rq.set_user(message.from_user.id)
     await state.set_state(Reminder.text)
     await message.answer("Введите текст напоминания:")
 
@@ -39,7 +40,9 @@ async def set_reminder(message: Message, state: FSMContext):
 async def reminder_text(message: Message, state: FSMContext):
     await state.update_data(text=message.text)
     await state.set_state(Reminder.date_time)
-    await message.answer('Введите дату в формате ДД.ММ.ГГГГ и время в формате ЧЧ:ММ (например, 31.12.2023 23:59):')
+    await message.answer('Введите дату в формате ДД.ММ.ГГГГ и время в формате ЧЧ:ММ '
+                         '(<b>например:</b> 07.05.2023 21:00):',
+                         parse_mode='HTML')
 
 
 @router.message(Reminder.date_time)
@@ -64,16 +67,22 @@ async def reminder_date(message: Message, state: FSMContext):
 
 @router.message(F.text.lower() == 'Активные напоминания'.lower())
 async def all_reminders(message: Message):
-    reminders_user = rq.get_reminders(message.from_user.id)
-    if reminders_user:
+    reminders_user = await rq.get_reminders(message.from_user.id)
+    reminders = await rq.check_reminders_for_user(message.from_user.id)
+
+    if not reminders:
+        await message.answer("Активных напоминаний нет 😢")
+        return
+    else:
         await message.answer("<strong>Вот все ваши напоминания:</strong>", parse_mode='HTML')
-        for rem in await reminders_user:
-            await message.answer(f"<b>Текст:</b> {rem.text}\n<b>Дата и время напоминания:</b> {rem.date_time}",
+        for rem in reminders_user:
+            await message.answer(f"<b>Текст:</b> "
+                                 f"{rem.text}\n"
+                                 f"<b>Дата и время напоминания:</b> "
+                                 f"{datetime.strftime(rem.date_time, '%d.%m.%Y в %H:%M')}",
                                  parse_mode='HTML',
                                  reply_markup=await kb_inline.actions_reminders(rem.id)
                                  )
-    else:
-        await message.answer("Активных напоминаний нет😢")
 
 
 @router.callback_query(F.data.startswith('delete_reminder_'))
