@@ -95,6 +95,11 @@ async def delete_reminder(callback: CallbackQuery):
     await rq.delete_reminder(callback.data.split('_')[-1])
 
 
+@router.message(F.text.lower() == 'Контакты'.lower())
+async def contacts(message: Message):
+    await message.answer("Посмотреть все мои проекты можно на странице GitHub: https://github.com/vitalaga")
+
+
 @router.message(F.photo)
 async def download_photo(message: Message, bot: Bot):
     await bot.download(
